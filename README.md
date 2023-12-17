@@ -7,10 +7,10 @@ At this point, the only notable implement is the univariate_polynomial.hpp conta
   - degree type
   - automatic leading zeroes trimming functionality
 
-Currently implemented fuctionality includes:
+Currently implemented functionality includes:
   - evaluation according to Horner's scheme
   - access to coefficients through subscript
-    - bound-checked for contsts
+    - bound-checked for consts
     - unchecked for non-consts
   - destructive add, sub
   - destructive mul, div by a constant
