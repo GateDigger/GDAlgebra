@@ -5,7 +5,7 @@ is a tiny computer algebra project (which I decided to learn C++ on).
 At this point, the only notable implement is the univariate_polynomial.hpp container template. The template is written directly on pointer arithmetic and allows to specify
   - base coefficient type
   - degree type
-  - automatic leading zeroes trimming functionality
+  - leading zeroes trim mode
 
 Currently implemented functionality includes:
   - evaluation according to Horner's scheme
@@ -19,13 +19,23 @@ Currently implemented functionality includes:
   - add, sub
   - mul by a constant
   - schoolbook mul
-  - Karatsuba's multiplication algorithm
+  - Karatsuba's mul
+  - div_mod
   - equality / nonequality operators
 
-The intent is to allow operations between containers of different coefficient types and different trim modes, if they are compatible. algebraic_type_closures.hpp is an attempt to facilitate that.
+The intent is to allow operations between containers of different coefficient types and different trim modes, if they are compatible. algebraic_type_closures.hpp is an attempt to facilitate the type compatibility.
 
-## Warning
-This is long-term work in progress, I performed a few basic tests but template = combinatorial explosion. I am also not very experienced with C++.
+## TODO
+  - GCD
+  - Square-free factorization
+  - Numerical root searching for pseudo-dense coefficient types
+  - Toom-Cook ?
+  - FFT multiplication ?
+  - ...
+  - Proper unit tests
+
+## Disclaimer
+I am relatively new to C++ and this is long-term, not very thoroughly tested work in progress.
 
 ## License
 

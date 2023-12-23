@@ -13,14 +13,11 @@ struct CL_2<T, T>
 	using sub_type = T;
 	using mul_type = T;
 	using div_type = T;
-
-	using karatsuba_mul_type = T;
+	using mod_type = T;
 };
 
 template<typename T>
 struct CL_1
 {
-	using shift_type = T;
-
-	using neg_type = T;
+	using neg_type = CL_2<T, T>::sub_type;
 };
