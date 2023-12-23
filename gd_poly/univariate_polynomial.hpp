@@ -2,7 +2,6 @@
 
 #include <string>
 #include <iostream>
-#include <initializer_list>
 
 #include "../gd_util/algebraic_type_closures.hpp"
 
@@ -10,6 +9,8 @@
 
 #define _NEQ0_BY_PTR(LOW, HIGH) ((LOW) < (HIGH))
 #define _EQ0_BY_PTR(LOW, HIGH) (!((LOW) < (HIGH)))
+
+#define _NEWLINE " \n"
 
 namespace gda
 {
@@ -168,7 +169,7 @@ namespace gda
 			:_coefs_low(nullptr), _coefs_high(nullptr)
 		{
 #ifdef CONSOLE_LOG
-			std::cout << "ctor()" << std::endl;
+			std::cout << "uvp_ctor(): _ -> (" << _coefs_low << " - " << _coefs_high << ")" << _NEWLINE;
 #endif
 		}
 
@@ -176,7 +177,7 @@ namespace gda
 		uvp(const T_COEF& a_0)
 		{
 #ifdef CONSOLE_LOG
-			std::cout << "ctor(" << a_0 << ")";
+			std::cout << "uvp_ctor(" << &a_0 << "): _";
 #endif
 			if constexpr (AUTO_TRIM)
 			{
@@ -199,7 +200,7 @@ namespace gda
 				_coefs_high = _coefs_low + 1;
 			}
 #ifdef CONSOLE_LOG
-			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ")" << std::endl;
+			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ")" << _NEWLINE;
 #endif
 		}
 
@@ -207,13 +208,13 @@ namespace gda
 		explicit uvp(T_COEF* coefs_low, T_COEF* coefs_high)
 		{
 #ifdef CONSOLE_LOG
-			std::cout << "ctor(" << coefs_low << "; " << coefs_high << ")";
+			std::cout << "uvp_ctor(" << coefs_low << " - " << coefs_high << "): _";
 #endif
 
 			gda::take_ownership_internal<T_COEF, false, AUTO_TRIM>(coefs_low, coefs_high, &_coefs_low, &_coefs_high);
 
 #ifdef CONSOLE_LOG
-			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ")" << std::endl;
+			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ")" << _NEWLINE;
 #endif
 		}
 
@@ -222,13 +223,13 @@ namespace gda
 		uvp(const uvp<OTHER_T_COEF, T_DEG, OTHER_AUTO_TRIM>& other)
 		{
 #ifdef CONSOLE_LOG
-			std::cout << "ctor(const &" << other << ")";
+			std::cout << "uvp_ctor_const&(" << &other << "): _";
 #endif
 
 			gda::dupe_internal<OTHER_T_COEF, T_COEF, AUTO_TRIM>(other.cc_iter_ctl(), other.lc_iter_ctl(), &_coefs_low, &_coefs_high);
 
 #ifdef CONSOLE_LOG
-			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ")" << std::endl;
+			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ")" << _NEWLINE;
 #endif
 		}
 
@@ -237,13 +238,13 @@ namespace gda
 		uvp(const uvp<T_COEF, T_DEG, OTHER_AUTO_TRIM>& other)
 		{
 #ifdef CONSOLE_LOG
-			std::cout << "ctor(const &" << other << ")";
+			std::cout << "uvp_ctor_const&(" << &other << "): _";
 #endif
 
 			gda::dupe_internal<T_COEF, OTHER_AUTO_TRIM, AUTO_TRIM>(other.cc_iter_ctl(), other.lc_iter_ctl(), &_coefs_low, &_coefs_high);
 
 #ifdef CONSOLE_LOG
-			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ")" << std::endl;
+			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ")" << _NEWLINE;
 #endif
 		}
 
@@ -259,7 +260,7 @@ namespace gda
 		uvp(uvp<T_COEF, T_DEG, OTHER_AUTO_TRIM>&& other) noexcept
 		{
 #ifdef CONSOLE_LOG
-			std::cout << "ctor(&&" << other << ")";
+			std::cout << "uvp_ctor_&&(" << &other << "): _";
 #endif
 
 			gda::take_ownership_internal<T_COEF, OTHER_AUTO_TRIM, AUTO_TRIM>(other.cc_iter_ctl(), other.lc_iter_ctl(), &_coefs_low, &_coefs_high);
@@ -267,7 +268,7 @@ namespace gda
 			other.wipe_internal_shallow();
 
 #ifdef CONSOLE_LOG
-			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ")" << std::endl;
+			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ")" << _NEWLINE;
 #endif
 		}
 
@@ -275,7 +276,7 @@ namespace gda
 		~uvp()
 		{
 #ifdef CONSOLE_LOG
-			std::cout << "dtor(" << _coefs_low << "; " << _coefs_high << ")" << std::endl;
+			std::cout << "uvp_dtor(" << this << "): (" << _coefs_low << " - " << _coefs_high << ") -> _ " << _NEWLINE;
 #endif
 			delete[] _coefs_low;
 		}
@@ -289,19 +290,18 @@ namespace gda
 		uvp<T_COEF, T_DEG, AUTO_TRIM>& operator =(const uvp<OTHER_T_COEF, T_DEG, OTHER_AUTO_TRIM>& other)
 		{
 #ifdef CONSOLE_LOG
-			std::cout << "assignment(&" << other << "); (" << _coefs_low << " - " << _coefs_high << ")";
+			std::cout << "uvp_assignment_const&(*" << this << " = *" << &other << "): (" << _coefs_low << " - " << _coefs_high << ")";
 #endif
-			if (static_cast<const void*>(this) == static_cast<const void*>(&other))
+
+			if (static_cast<const void*>(this) != static_cast<const void*>(&other))
 			{
-#ifdef CONSOLE_LOG
-				std::cout << std::endl;
-#endif
-				return *this;
+				delete[] _coefs_low;
+				gda::dupe_internal<OTHER_T_COEF, T_COEF, AUTO_TRIM>(other.cc_iter_ctl(), other.lc_iter_ctl(), &_coefs_low, &_coefs_high);
 			}
 
-			delete[] _coefs_low;
-
-			gda::dupe_internal<OTHER_T_COEF, T_COEF, AUTO_TRIM>(other.cc_iter_ctl(), other.lc_iter_ctl(), &_coefs_low, &_coefs_high);
+#ifdef CONSOLE_LOG
+			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ")" << _NEWLINE;
+#endif
 
 			return *this;
 		}
@@ -311,22 +311,17 @@ namespace gda
 		uvp<T_COEF, T_DEG, AUTO_TRIM>& operator =(const uvp<T_COEF, T_DEG, OTHER_AUTO_TRIM>& other)
 		{
 #ifdef CONSOLE_LOG
-			std::cout << "assignment(&" << other << "); (" << _coefs_low << " - " << _coefs_high << ")";
+			std::cout << "uvp_assignment_const&(*" << this << " = *" << &other << "): (" << _coefs_low << " - " << _coefs_high << ")";
 #endif
-			if (static_cast<const void*>(this) == static_cast<const void*>(&other))
+
+			if (static_cast<const void*>(this) != static_cast<const void*>(&other))
 			{
-#ifdef CONSOLE_LOG
-				std::cout << std::endl;
-#endif
-				return *this;
+				delete[] _coefs_low;
+				gda::dupe_internal<T_COEF, OTHER_AUTO_TRIM, AUTO_TRIM>(other.cc_iter_ctl(), other.lc_iter_ctl(), &_coefs_low, &_coefs_high);
 			}
 
-			delete[] _coefs_low;
-
-			gda::dupe_internal<T_COEF, OTHER_AUTO_TRIM, AUTO_TRIM>(other.cc_iter_ctl(), other.lc_iter_ctl(), &_coefs_low, &_coefs_high);
-
 #ifdef CONSOLE_LOG
-			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ")" << std::endl;
+			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ")" << _NEWLINE;
 #endif
 
 			return *this;
@@ -344,25 +339,20 @@ namespace gda
 		uvp<T_COEF, T_DEG, AUTO_TRIM>& operator =(uvp<T_COEF, T_DEG, OTHER_AUTO_TRIM>&& other) noexcept
 		{
 #ifdef CONSOLE_LOG
-			std::cout << "assignment(&&" << other << "); (" << _coefs_low << " - " << _coefs_high << ")";
+			std::cout << "uvp_assignment_&&(*" << this << " = *" << &other << "): (" << _coefs_low << " - " << _coefs_high << ")";
 #endif
-			if (static_cast<void*>(this) == static_cast<void*>(&other))
+
+			if (static_cast<void*>(this) != static_cast<void*>(&other))
 			{
-#ifdef CONSOLE_LOG
-				std::cout << std::endl;
-#endif
-				return *this;
+				delete[] _coefs_low;
+				gda::take_ownership_internal<T_COEF, OTHER_AUTO_TRIM, AUTO_TRIM>(other.cc_iter_ctl(), other.lc_iter_ctl(), &_coefs_low, &_coefs_high);
+				other.wipe_internal_shallow();
 			}
 
-			delete[] _coefs_low;
-
-			gda::take_ownership_internal<T_COEF, OTHER_AUTO_TRIM, AUTO_TRIM>(other.cc_iter_ctl(), other.lc_iter_ctl(), &_coefs_low, &_coefs_high);
-
-			other.wipe_internal_shallow();
-
 #ifdef CONSOLE_LOG
-			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ")" << std::endl;
+			std::cout << " -> (" << _coefs_low << " - " << _coefs_high << ") " << _NEWLINE;
 #endif
+
 			return *this;
 		}
 
@@ -484,8 +474,8 @@ namespace gda
 		const T_COEF& operator[](const T_DEG index) const noexcept
 		{
 			return index < static_cast<T_DEG>(0) ?
-				_coefs_high - _coefs_low < -index ? static_cast<T_COEF>(0) : *(index + _coefs_high) :
-				_coefs_high - _coefs_low > index ? *(_coefs_low + index) : static_cast<T_COEF>(0);
+				_coefs_high - _coefs_low < -index ? static_cast<T_COEF>(0) : _coefs_high[index] :
+				_coefs_high - _coefs_low > index ? _coefs_low[index] : static_cast<T_COEF>(0);
 		}
 
 	public:
@@ -540,15 +530,15 @@ namespace gda
 #pragma region ADD
 
 	public:
-		template <bool OTHER_AUTO_TRIM>
-		uvp<T_COEF, T_DEG, AUTO_TRIM>& operator += (const uvp<T_COEF, T_DEG, OTHER_AUTO_TRIM>& other)
+		template <typename OTHER_T_COEF, bool OTHER_AUTO_TRIM>
+		uvp<T_COEF, T_DEG, AUTO_TRIM>& operator += (const uvp<OTHER_T_COEF, T_DEG, OTHER_AUTO_TRIM>& other)
 		{
 			T_COEF* t_low = cc_iter_ctl(),
-				* t_high = lc_iter_ctl(),
-				* o_low = other.cc_iter_ctl(),
+				* t_high = lc_iter_ctl();
+			OTHER_T_COEF* o_low = other.cc_iter_ctl(),
 				* o_high = other.lc_iter_ctl();
 
-			gda::trim_internal<T_COEF, !OTHER_AUTO_TRIM, false>(&o_low, &o_high);
+			gda::trim_internal<OTHER_T_COEF, !OTHER_AUTO_TRIM, false>(&o_low, &o_high);
 
 			if (_EQ0_BY_PTR(o_low, o_high))
 			{
@@ -560,8 +550,8 @@ namespace gda
 				T_COEF* result_low = new T_COEF[o_high - o_low],
 					* result_high = result_low + (o_high - o_low),
 					* result_iter = result_low,
-					* t_iter = t_low,
-					* o_iter = o_low;
+					* t_iter = t_low;
+				OTHER_T_COEF* o_iter = o_low;
 
 				for (; t_iter != t_high; ++t_iter, ++o_iter, ++result_iter)
 				{
@@ -596,15 +586,15 @@ namespace gda
 #pragma region SUB
 
 	public:
-		template <bool OTHER_AUTO_TRIM>
-		uvp<T_COEF, T_DEG, AUTO_TRIM>& operator -= (const uvp<T_COEF, T_DEG, OTHER_AUTO_TRIM>& other)
+		template <typename OTHER_T_COEF, bool OTHER_AUTO_TRIM>
+		uvp<T_COEF, T_DEG, AUTO_TRIM>& operator -= (const uvp<OTHER_T_COEF, T_DEG, OTHER_AUTO_TRIM>& other)
 		{
 			T_COEF* t_low = cc_iter_ctl(),
-				* t_high = lc_iter_ctl(),
-				* o_low = other.cc_iter_ctl(),
+				* t_high = lc_iter_ctl();
+			OTHER_T_COEF* o_low = other.cc_iter_ctl(),
 				* o_high = other.lc_iter_ctl();
 
-			gda::trim_internal<T_COEF, !OTHER_AUTO_TRIM, false>(&o_low, &o_high);
+			gda::trim_internal<OTHER_T_COEF, !OTHER_AUTO_TRIM, false>(&o_low, &o_high);
 
 			if (_EQ0_BY_PTR(o_low, o_high))
 			{
@@ -616,8 +606,8 @@ namespace gda
 				T_COEF* result_low = new T_COEF[o_high - o_low],
 					* result_high = result_low + (o_high - o_low),
 					* result_iter = result_low,
-					* t_iter = t_low,
-					* o_iter = o_low;
+					* t_iter = t_low;
+				OTHER_T_COEF* o_iter = o_low;
 
 				for (; t_iter != t_high; ++t_iter, ++o_iter, ++result_iter)
 				{
@@ -635,7 +625,7 @@ namespace gda
 			else
 			{
 				T_COEF* t_iter = t_low,
-					o_iter = o_low;
+					* o_iter = o_low;
 				for (; o_iter != o_high; ++o_iter, ++t_iter)
 				{
 					*t_iter -= *o_iter;
@@ -652,26 +642,24 @@ namespace gda
 #pragma region MUL
 
 	public:
-		uvp<T_COEF, T_DEG, AUTO_TRIM>& operator *= (const T_COEF& other)
+		template <typename OTHER_T>
+		uvp<T_COEF, T_DEG, AUTO_TRIM>& operator *= (const OTHER_T& other)
 		{
 			if constexpr (AUTO_TRIM)
 			{
 				if (other == static_cast<T_COEF>(0))
 				{
-					delete[] _coefs_low;
-					_coefs_low = nullptr;
-					_coefs_high = nullptr;
+					wipe_internal();
 					return *this;
 				}
 			}
 
 			T_COEF* t_low = cc_iter_ctl(),
-				* t_high = lc_iter_ctl(),
-				* t_iter;
+				* t_high = lc_iter_ctl();
 
 			gda::trim_internal<T_COEF, !AUTO_TRIM, false>(&t_low, &t_high);
 
-			for (t_iter = t_low; t_iter != t_high; ++t_iter)
+			for (T_COEF* t_iter = t_low; t_iter != t_high; ++t_iter)
 			{
 				*t_iter *= other;
 			}
@@ -686,15 +674,15 @@ namespace gda
 #pragma region DIV
 
 	public:
-		uvp<T_COEF, T_DEG, AUTO_TRIM>& operator /= (const T_COEF& other)
+		template <typename OTHER_T>
+		uvp<T_COEF, T_DEG, AUTO_TRIM>& operator /= (const OTHER_T& other)
 		{
 			T_COEF* t_low = cc_iter_ctl(),
-				* t_high = lc_iter_ctl(),
-				* t_iter;
+				* t_high = lc_iter_ctl();
 
 			gda::trim_internal<T_COEF, !AUTO_TRIM, false>(&t_low, &t_high);
 
-			for (t_iter = t_low; t_iter != t_high; ++t_iter)
+			for (T_COEF* t_iter = t_low; t_iter != t_high; ++t_iter)
 			{
 				*t_iter /= other;
 			}
@@ -731,21 +719,6 @@ namespace gda
 				gda::dupe_internal<T_COEF, AUTO_TRIM, false>(t_low, t_high, &result_low, &result_high);
 				return uvp<T_COEF, T_DEG, false>(result_low, result_high);
 			}
-		}
-
-	public:
-		T_COEF sum_coefs() const
-		{
-			T_COEF result = static_cast<T_COEF>(0);
-			T_COEF* t_low = cc_iter_ctl(),
-				* t_high = lc_iter_ctl();
-
-			for (T_COEF* t_iter = t_low; t_iter != t_high; ++t_iter)
-			{
-				result += *t_iter;
-			}
-
-			return result;
 		}
 
 #pragma endregion
@@ -904,43 +877,43 @@ namespace gda
 
 #pragma region SHIFT
 
-	template<typename T_COEF, typename OUT_T_COEF = CL_1<T_COEF>::shift_type, typename T_DEG, bool AUTO_TRIM>
-	uvp<OUT_T_COEF, T_DEG, AUTO_TRIM> shr_internal(T_COEF* left_low, T_COEF* left_high, const T_DEG right)
+	template<typename T_COEF, typename T_DEG, bool AUTO_TRIM>
+	uvp<T_COEF, T_DEG, AUTO_TRIM> shr_internal(T_COEF* left_low, T_COEF* left_high, const T_DEG right)
 	{
-		OUT_T_COEF* result_low = new OUT_T_COEF[left_high - left_low - right],
+		T_COEF* result_low = new T_COEF[left_high - left_low - right],
 			* result_high = result_low + (left_high - left_low - right),
 			* result_iter = result_low;
 
 		for (T_COEF* left_iter = left_low + right; left_iter != left_high; ++left_iter, ++result_iter)
 		{
-			*result_iter = static_cast<OUT_T_COEF>(*left_iter);
+			*result_iter = static_cast<T_COEF>(*left_iter);
 		}
 
-		return uvp<OUT_T_COEF, T_DEG, AUTO_TRIM>(result_low, result_high);
+		return uvp<T_COEF, T_DEG, AUTO_TRIM>(result_low, result_high);
 	}
 
-	template<typename T_COEF, typename OUT_T_COEF = CL_1<T_COEF>::shift_type, typename T_DEG, bool AUTO_TRIM>
-	uvp<OUT_T_COEF, T_DEG, AUTO_TRIM> shl_internal(T_COEF* left_low, T_COEF* left_high, const T_DEG right)
+	template<typename T_COEF, typename T_DEG, bool AUTO_TRIM>
+	uvp<T_COEF, T_DEG, AUTO_TRIM> shl_internal(T_COEF* left_low, T_COEF* left_high, const T_DEG right)
 	{
-		OUT_T_COEF* result_low = new OUT_T_COEF[left_high - left_low + right],
+		T_COEF* result_low = new T_COEF[left_high - left_low + right],
 			* result_high = result_low + (left_high - left_low + right),
 			* result_iter = result_low;
 
 		for (; result_iter != result_low + right; ++result_iter)
 		{
-			*result_iter = static_cast<OUT_T_COEF>(0);
+			*result_iter = static_cast<T_COEF>(0);
 		}
 
 		for (T_COEF* left_iter = left_low; left_iter != left_high; ++left_iter, ++result_iter)
 		{
-			*result_iter = static_cast<OUT_T_COEF>(*left_iter);
+			*result_iter = static_cast<T_COEF>(*left_iter);
 		}
 
-		return uvp<OUT_T_COEF, T_DEG, AUTO_TRIM>(result_low, result_high);
+		return uvp<T_COEF, T_DEG, AUTO_TRIM>(result_low, result_high);
 	}
 
-	template<typename T_COEF, typename OUT_T_COEF = CL_1<T_COEF>::shift_type, typename T_DEG, bool AUTO_TRIM>
-	uvp<OUT_T_COEF, T_DEG, AUTO_TRIM> operator >>(const uvp<T_COEF, T_DEG, AUTO_TRIM>& left, const T_DEG right)
+	template<typename T_COEF, typename T_DEG, bool AUTO_TRIM>
+	uvp<T_COEF, T_DEG, AUTO_TRIM> operator >>(const uvp<T_COEF, T_DEG, AUTO_TRIM>& left, const T_DEG right)
 	{
 		if constexpr (AUTO_TRIM)
 		{
@@ -948,38 +921,38 @@ namespace gda
 			{
 				if (static_cast<T_DEG>(0) < (left.lc_iter_ctl() - left.cc_iter_ctl()))
 				{
-					return shl_internal<T_COEF, OUT_T_COEF, T_DEG, AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), -right);
+					return shl_internal<T_COEF, T_DEG, AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), -right);
 				}
-				return uvp<OUT_T_COEF, T_DEG, AUTO_TRIM>();
+				return uvp<T_COEF, T_DEG, AUTO_TRIM>();
 			}
 			else
 			{
 				if (right < (left.lc_iter_ctl() - left.cc_iter_ctl()))
 				{
-					return shr_internal<T_COEF, OUT_T_COEF, T_DEG, AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), right);
+					return shr_internal<T_COEF, T_DEG, AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), right);
 				}
-				return uvp<OUT_T_COEF, T_DEG, AUTO_TRIM>();
+				return uvp<T_COEF, T_DEG, AUTO_TRIM>();
 			}
 		}
 		else
 		{
 			if (right < static_cast<T_DEG>(0))
 			{
-				return shl_internal<T_COEF, OUT_T_COEF, T_DEG, AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), -right);
+				return shl_internal<T_COEF, T_DEG, AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), -right);
 			}
 			else
 			{
 				if (right < (left.lc_iter_ctl() - left.cc_iter_ctl()))
 				{
-					return shr_internal<T_COEF, OUT_T_COEF, T_DEG, AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), right);
+					return shr_internal<T_COEF, T_DEG, AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), right);
 				}
-				return uvp<OUT_T_COEF, T_DEG, AUTO_TRIM>();
+				return uvp<T_COEF, T_DEG, AUTO_TRIM>();
 			}
 		}
 	}
 
-	template<typename T_COEF, typename OUT_T_COEF = CL_1<T_COEF>::shift_type, typename T_DEG, bool AUTO_TRIM>
-	uvp<OUT_T_COEF, T_DEG, AUTO_TRIM> operator <<(const uvp<T_COEF, T_DEG, AUTO_TRIM>& left, const T_DEG right)
+	template<typename T_COEF, typename T_DEG, bool AUTO_TRIM>
+	uvp<T_COEF, T_DEG, AUTO_TRIM> operator <<(const uvp<T_COEF, T_DEG, AUTO_TRIM>& left, const T_DEG right)
 	{
 		return left >> -right;
 	}
@@ -988,7 +961,7 @@ namespace gda
 
 #pragma region ADD
 
-	template<typename L_T_COEF, typename R_T_COEF, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::add_type, typename T_DEG, bool AUTO_TRIM>
+	template<typename L_T_COEF, typename R_T_COEF, typename T_DEG, bool AUTO_TRIM, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::add_type>
 	static uvp<OUT_T_COEF, T_DEG, AUTO_TRIM> add_internal(const L_T_COEF* left_low, const L_T_COEF* left_high, const R_T_COEF* right_low, const R_T_COEF* right_high)
 	{
 		const L_T_COEF* left_iter = left_low;
@@ -1023,29 +996,29 @@ namespace gda
 		}
 	}
 
-	template<typename L_T_COEF, typename R_T_COEF, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::add_type, typename T_DEG, bool L_AUTO_TRIM, bool R_AUTO_TRIM>
+	template<typename L_T_COEF, typename R_T_COEF, typename T_DEG, bool L_AUTO_TRIM, bool R_AUTO_TRIM, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::add_type>
 	uvp<OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM> operator +(const uvp<L_T_COEF, T_DEG, L_AUTO_TRIM>& left, const uvp<R_T_COEF, T_DEG, R_AUTO_TRIM>& right)
 	{
-		return add_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), right.cc_iter_ctl(), right.lc_iter_ctl());
+		return gda::add_internal<L_T_COEF, R_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM, OUT_T_COEF>(left.cc_iter_ctl(), left.lc_iter_ctl(), right.cc_iter_ctl(), right.lc_iter_ctl());
 	}
 
-	template<typename L_T_COEF, typename R_T_COEF, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::add_type, typename T_DEG, bool L_AUTO_TRIM>
+	template<typename L_T_COEF, typename R_T_COEF, typename T_DEG, bool L_AUTO_TRIM, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::add_type>
 	uvp<OUT_T_COEF, T_DEG, L_AUTO_TRIM> operator +(const uvp<L_T_COEF, T_DEG, L_AUTO_TRIM>& left, const R_T_COEF& right)
 	{
-		return add_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, L_AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), &right, &right + 1);
+		return gda::add_internal<L_T_COEF, R_T_COEF, T_DEG, L_AUTO_TRIM, OUT_T_COEF>(left.cc_iter_ctl(), left.lc_iter_ctl(), &right, &right + 1);
 	}
 
-	template<typename L_T_COEF, typename R_T_COEF, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::add_type, typename T_DEG, bool R_AUTO_TRIM>
+	template<typename L_T_COEF, typename R_T_COEF, typename T_DEG, bool R_AUTO_TRIM, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::add_type>
 	uvp<OUT_T_COEF, T_DEG, R_AUTO_TRIM> operator +(const L_T_COEF& left, const uvp<R_T_COEF, T_DEG, R_AUTO_TRIM>& right)
 	{
-		return add_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, R_AUTO_TRIM>(&left, &left + 1, right.cc_iter_ctl(), right.lc_iter_ctl());
+		return gda::add_internal<L_T_COEF, R_T_COEF, T_DEG, R_AUTO_TRIM, OUT_T_COEF>(&left, &left + 1, right.cc_iter_ctl(), right.lc_iter_ctl());
 	}
 
 #pragma endregion
 
 #pragma region SUB
 
-	template<typename L_T_COEF, typename R_T_COEF, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::add_type, typename T_DEG, bool AUTO_TRIM>
+	template<typename L_T_COEF, typename R_T_COEF, typename T_DEG, bool AUTO_TRIM, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::sub_type>
 	static uvp<OUT_T_COEF, T_DEG, AUTO_TRIM> sub_internal(const L_T_COEF* left_low, const L_T_COEF* left_high, const R_T_COEF* right_low, const R_T_COEF* right_high)
 	{
 		const L_T_COEF* left_iter = left_low;
@@ -1080,7 +1053,7 @@ namespace gda
 		}
 	}
 
-	template<typename T_COEF, typename OUT_T_COEF = CL_1<T_COEF>::neg_type, typename T_DEG, bool AUTO_TRIM>
+	template<typename T_COEF, typename T_DEG, bool AUTO_TRIM, typename OUT_T_COEF = CL_1<T_COEF>::neg_type>
 	uvp<OUT_T_COEF, T_DEG, AUTO_TRIM> operator -(const uvp<T_COEF, T_DEG, AUTO_TRIM>& p)
 	{
 		T_COEF* p_low = p.cc_iter_ctl(),
@@ -1103,29 +1076,29 @@ namespace gda
 		return uvp<OUT_T_COEF, T_DEG, AUTO_TRIM>(result_low, result_high);
 	}
 
-	template<typename L_T_COEF, typename R_T_COEF, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::sub_type, typename T_DEG, bool L_AUTO_TRIM, bool R_AUTO_TRIM>
+	template<typename L_T_COEF, typename R_T_COEF, typename T_DEG, bool L_AUTO_TRIM, bool R_AUTO_TRIM, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::sub_type>
 	uvp<OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM> operator -(const uvp<L_T_COEF, T_DEG, L_AUTO_TRIM>& left, const uvp<R_T_COEF, T_DEG, R_AUTO_TRIM>& right)
 	{
-		return sub_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), right.cc_iter_ctl(), right.lc_iter_ctl());
+		return gda::sub_internal<L_T_COEF, R_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM, OUT_T_COEF>(left.cc_iter_ctl(), left.lc_iter_ctl(), right.cc_iter_ctl(), right.lc_iter_ctl());
 	}
 
-	template<typename L_T_COEF, typename R_T_COEF, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::sub_type, typename T_DEG, bool AUTO_TRIM>
+	template<typename L_T_COEF, typename R_T_COEF, typename T_DEG, bool AUTO_TRIM, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::sub_type>
 	uvp<OUT_T_COEF, T_DEG, AUTO_TRIM> operator -(const uvp<L_T_COEF, T_DEG, AUTO_TRIM>& left, const R_T_COEF& right)
 	{
-		return sub_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), &right, &right + 1);
+		return gda::sub_internal<L_T_COEF, R_T_COEF, T_DEG, AUTO_TRIM, OUT_T_COEF>(left.cc_iter_ctl(), left.lc_iter_ctl(), &right, &right + 1);
 	}
 
-	template<typename L_T_COEF, typename R_T_COEF, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::sub_type, typename T_DEG, bool AUTO_TRIM>
+	template<typename L_T_COEF, typename R_T_COEF, typename T_DEG, bool AUTO_TRIM, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::sub_type>
 	uvp<OUT_T_COEF, T_DEG, AUTO_TRIM> operator -(const L_T_COEF& left, const uvp<R_T_COEF, T_DEG, AUTO_TRIM>& right)
 	{
-		return sub_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, AUTO_TRIM>(&left, &left + 1, right.cc_iter_ctl(), right.lc_iter_ctl());
+		return gda::sub_internal<L_T_COEF, R_T_COEF, T_DEG, AUTO_TRIM, OUT_T_COEF>(&left, &left + 1, right.cc_iter_ctl(), right.lc_iter_ctl());
 	}
 
 #pragma endregion
 
 #pragma region MUL
 
-	template<typename L_T_COEF, typename R_T_COEF, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::mul_type, typename T_DEG>
+	template<typename L_T_COEF, typename R_T_COEF, typename T_DEG, typename LMR_T_COEF = CL_2<L_T_COEF, R_T_COEF>::mul_type, typename OUT_T_COEF = CL_2<LMR_T_COEF, LMR_T_COEF>::add_type>
 	static void schoolbook_mul_internal(L_T_COEF* left_low, L_T_COEF* left_high,
 		R_T_COEF* right_low, R_T_COEF* right_high,
 		OUT_T_COEF* result_low)
@@ -1143,52 +1116,98 @@ namespace gda
 		}
 	}
 
-	template<typename L_T_COEF, typename R_T_COEF, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::mul_type, typename T_DEG, bool L_AUTO_TRIM, bool R_AUTO_TRIM>
+	template<typename L_T_COEF, typename R_T_COEF, typename T_DEG, bool L_AUTO_TRIM, bool R_AUTO_TRIM, typename LMR_T_COEF = CL_2<L_T_COEF, R_T_COEF>::mul_type, typename OUT_T_COEF = CL_2<LMR_T_COEF, LMR_T_COEF>::add_type>
 	uvp<OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM> schoolbook_mul(const uvp<L_T_COEF, T_DEG, L_AUTO_TRIM>& left, const uvp<R_T_COEF, T_DEG, R_AUTO_TRIM>& right)
 	{
-		if (left.is_zero())
-			return uvp<OUT_T_COEF, T_DEG>();
+		L_T_COEF* left_low = left.cc_iter_ctl(),
+			* left_high = left.lc_iter_ctl();
 
-		if (right.is_zero())
-			return uvp<OUT_T_COEF, T_DEG>();
+		R_T_COEF* right_low = right.cc_iter_ctl(),
+			* right_high = right.lc_iter_ctl();
 
-		OUT_T_COEF* result_low = new OUT_T_COEF[left.deg() + right.deg() + 1],
-			* result_high = result_low + left.deg() + right.deg() + 1;
+		if constexpr (L_AUTO_TRIM || R_AUTO_TRIM)
+		{
+			gda::trim_internal<L_T_COEF, !L_AUTO_TRIM, false>(&left_low, &left_high);
+			gda::trim_internal<L_T_COEF, !R_AUTO_TRIM, false>(&right_low, &right_high);
 
-		init_internal<OUT_T_COEF, static_cast<OUT_T_COEF>(0)>(result_low, result_high);
-		schoolbook_mul_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG>(left.cc_iter_ctl(), left.lc_iter_ctl(),
-			right.cc_iter_ctl(), right.lc_iter_ctl(),
-			result_low);
+			if (_EQ0_BY_PTR(left_low, left_high))
+			{
+				return uvp<OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM>();
+			}
 
-		return uvp<OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM>(result_low, result_high);
+			if (_EQ0_BY_PTR(right_low, right_high))
+			{
+				return uvp<OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM>();
+			}
+
+			OUT_T_COEF* result_low = new OUT_T_COEF[(left_high - left_low) + (right_high - right_low) - 1],
+				* result_high = result_low + (left_high - left_low) + (right_high - right_low) - 1;
+
+			gda::init_internal<OUT_T_COEF, static_cast<OUT_T_COEF>(0)>(result_low, result_high);
+			gda::schoolbook_mul_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG>(left_low, left_high,
+				right_low, right_high,
+				result_low);
+
+			return uvp<OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM>(result_low, result_high);
+		}
+		else
+		{
+			OUT_T_COEF* result_low = new OUT_T_COEF[(left_high - left_low) + (right_high - right_low) - 1],
+				* result_high = result_low + (left_high - left_low) + (right_high - right_low) - 1;
+
+			gda::init_internal<OUT_T_COEF, static_cast<OUT_T_COEF>(0)>(result_low, result_high);
+
+			gda::trim_internal<L_T_COEF, !L_AUTO_TRIM, false>(&left_low, &left_high);
+			gda::trim_internal<R_T_COEF, !R_AUTO_TRIM, false>(&right_low, &right_high);
+
+			if (_EQ0_BY_PTR(left_low, left_high))
+			{
+				return uvp<OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM>();
+			}
+
+			if (_EQ0_BY_PTR(right_low, right_high))
+			{
+				return uvp<OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM>();
+			}
+
+			gda::schoolbook_mul_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG>(left_low, left_high,
+				right_low, right_high,
+				result_low);
+
+			return uvp<OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM>(result_low, result_high);
+		}
 	}
 
-	template<typename T_COEF>
-	static void accumulate_add_karatsuba_internal(T_COEF* source_low, T_COEF* source_high, T_COEF* target_low)
+	template<typename TAR_T_COEF, typename SRC_T_COEF>
+	static void accu_add_karatsuba_internal(SRC_T_COEF* source_low, SRC_T_COEF* source_high, TAR_T_COEF* target_low)
 	{
-		for (T_COEF* source_iter = source_low, *target_iter = target_low; source_iter != source_high; ++source_iter, ++target_iter)
+		SRC_T_COEF* source_iter = source_low;
+		TAR_T_COEF* target_iter = target_low;
+		for (; source_iter != source_high; ++source_iter, ++target_iter)
 		{
 			*target_iter += *source_iter;
 		}
 	}
 
-	template<typename T_COEF>
-	static void accumulate_sub_karatsuba_internal(T_COEF* source_low, T_COEF* source_high, T_COEF* target_low)
+	template<typename TAR_T_COEF, typename SRC_T_COEF>
+	static void accu_sub_karatsuba_internal(SRC_T_COEF* source_low, SRC_T_COEF* source_high, TAR_T_COEF* target_low)
 	{
-		for (T_COEF* source_iter = source_low, *target_iter = target_low; source_iter != source_high; ++source_iter, ++target_iter)
+		SRC_T_COEF* source_iter = source_low;
+		TAR_T_COEF* target_iter = target_low;
+		for (; source_iter != source_high; ++source_iter, ++target_iter)
 		{
 			*target_iter -= *source_iter;
 		}
 	}
 
 	//Trivial cases: midpoint == high
-	template<typename L_T_COEF, typename R_T_COEF, typename T_DEG>
-	static void karatsuba_plan_internal(L_T_COEF* left_low, L_T_COEF* left_high, R_T_COEF* right_low, R_T_COEF* right_high, L_T_COEF** left_midpoint, R_T_COEF** right_midpoint)
+	template<typename T_COEF, typename T_DEG>
+	static void karatsuba_plan_internal(T_COEF* left_low, T_COEF* left_high, T_COEF* right_low, T_COEF* right_high, T_COEF** left_midpoint, T_COEF** right_midpoint)
 	{
 		static constexpr T_DEG length_threshold = 33;
 
-		T_DEG left_msb = extract_msb_internal<T_DEG>(left_high - left_low),
-			right_msb = extract_msb_internal<T_DEG>(right_high - right_low);
+		T_DEG left_msb = gda::extract_msb_internal<T_DEG>(left_high - left_low),
+			right_msb = gda::extract_msb_internal<T_DEG>(right_high - right_low);
 
 		if (left_msb < length_threshold || right_msb < length_threshold)
 		{
@@ -1217,92 +1236,92 @@ namespace gda
 		}
 	}
 
-	template<typename L_T_COEF, typename R_T_COEF, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::mul_type, typename T_DEG, bool OUT_AUTO_TRIM>
-	static uvp<OUT_T_COEF, T_DEG, OUT_AUTO_TRIM> karatsuba_internal(L_T_COEF* left_low, L_T_COEF* left_high, R_T_COEF* right_low, R_T_COEF* right_high)
+	template<typename T_COEF, typename T_DEG, bool OUT_AUTO_TRIM>
+	static uvp<T_COEF, T_DEG, OUT_AUTO_TRIM> karatsuba_internal(T_COEF* left_low, T_COEF* left_high, T_COEF* right_low, T_COEF* right_high)
 	{
-		L_T_COEF* left_midpoint;
-		R_T_COEF* right_midpoint;
-		karatsuba_plan_internal<L_T_COEF, R_T_COEF, T_DEG>(left_low, left_high, right_low, right_high, &left_midpoint, &right_midpoint);
+		T_COEF* left_midpoint;
+		T_COEF* right_midpoint;
+		gda::karatsuba_plan_internal<T_COEF, T_DEG>(left_low, left_high, right_low, right_high, &left_midpoint, &right_midpoint);
 
 		if (_EQ0_BY_PTR(left_midpoint, left_high) && _EQ0_BY_PTR(right_midpoint, right_high))
 		{
 			if constexpr (OUT_AUTO_TRIM)
 			{
-				left_midpoint = gda::rewind_trailing_zeroes_internal<L_T_COEF>(left_low, left_midpoint);
-				right_midpoint = gda::rewind_trailing_zeroes_internal<R_T_COEF>(right_low, right_midpoint);
+				left_midpoint = gda::rewind_trailing_zeroes_internal<T_COEF>(left_low, left_midpoint);
+				right_midpoint = gda::rewind_trailing_zeroes_internal<T_COEF>(right_low, right_midpoint);
 
 				if (_EQ0_BY_PTR(left_low, left_midpoint) || _EQ0_BY_PTR(right_low, right_midpoint))
 				{
-					return uvp<OUT_T_COEF, T_DEG, OUT_AUTO_TRIM>();
+					return uvp<T_COEF, T_DEG, OUT_AUTO_TRIM>();
 				}
 
-				OUT_T_COEF* result_low = new OUT_T_COEF[(left_midpoint - left_low) + (right_midpoint - right_low) - 1],
+				T_COEF* result_low = new T_COEF[(left_midpoint - left_low) + (right_midpoint - right_low) - 1],
 					* result_high = result_low + (left_midpoint - left_low) + (right_midpoint - right_low) - 1;
 
-				init_internal<OUT_T_COEF, static_cast<OUT_T_COEF>(0)>(result_low, result_high);
-				schoolbook_mul_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG>(left_low, left_midpoint,
+				gda::init_internal<T_COEF, static_cast<T_COEF>(0)>(result_low, result_high);
+				gda::schoolbook_mul_internal<T_COEF, T_COEF, T_DEG, T_COEF, T_COEF>(left_low, left_midpoint,
 					right_low, right_midpoint,
 					result_low);
 
-				return uvp<OUT_T_COEF, T_DEG, OUT_AUTO_TRIM>(result_low, result_high);
+				return uvp<T_COEF, T_DEG, OUT_AUTO_TRIM>(result_low, result_high);
 			}
 			else
 			{
-				OUT_T_COEF* result_low = new OUT_T_COEF[(left_midpoint - left_low) + (right_midpoint - right_low) - 1],
+				T_COEF* result_low = new T_COEF[(left_midpoint - left_low) + (right_midpoint - right_low) - 1],
 					* result_high = result_low + (left_midpoint - left_low) + (right_midpoint - right_low) - 1;
 
-				init_internal<OUT_T_COEF, static_cast<OUT_T_COEF>(0)>(result_low, result_high);
+				gda::init_internal<T_COEF, static_cast<T_COEF>(0)>(result_low, result_high);
 
-				left_midpoint = gda::rewind_trailing_zeroes_internal<L_T_COEF>(left_low, left_midpoint);
-				right_midpoint = gda::rewind_trailing_zeroes_internal<R_T_COEF>(right_low, right_midpoint);
+				left_midpoint = gda::rewind_trailing_zeroes_internal<T_COEF>(left_low, left_midpoint);
+				right_midpoint = gda::rewind_trailing_zeroes_internal<T_COEF>(right_low, right_midpoint);
 
-				schoolbook_mul_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG>(left_low, left_midpoint,
+				gda::schoolbook_mul_internal<T_COEF, T_COEF, T_DEG, T_COEF, T_COEF>(left_low, left_midpoint,
 					right_low, right_midpoint,
 					result_low);
 
-				return uvp<OUT_T_COEF, T_DEG, OUT_AUTO_TRIM>(result_low, result_high);
+				return uvp<T_COEF, T_DEG, OUT_AUTO_TRIM>(result_low, result_high);
 			}
 		}
 
 		if (_EQ0_BY_PTR(left_midpoint, left_high))
 		{
-			uvp<OUT_T_COEF, T_DEG, true> tmp_low = karatsuba_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, true>(left_low, left_high, right_low, right_midpoint);
-			uvp<OUT_T_COEF, T_DEG, true> tmp_high = karatsuba_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, true>(left_low, left_high, right_midpoint, right_high);
+			uvp<T_COEF, T_DEG, true> tmp_low = karatsuba_internal<T_COEF, T_DEG, true>(left_low, left_high, right_low, right_midpoint);
+			uvp<T_COEF, T_DEG, true> tmp_high = karatsuba_internal<T_COEF, T_DEG, true>(left_low, left_high, right_midpoint, right_high);
 
-			OUT_T_COEF* result_low = new OUT_T_COEF[tmp_high.deg() + (right_midpoint - right_low) + 1],
+			T_COEF* result_low = new T_COEF[tmp_high.deg() + (right_midpoint - right_low) + 1],
 				* result_high = result_low + tmp_high.deg() + (right_midpoint - right_low) + 1;
-			init_internal<OUT_T_COEF, static_cast<OUT_T_COEF>(0)>(result_low, result_high);
-			accumulate_add_karatsuba_internal<OUT_T_COEF>(tmp_low.cc_iter_ctl(), tmp_low.lc_iter_ctl(), result_low);
-			accumulate_add_karatsuba_internal<OUT_T_COEF>(tmp_high.cc_iter_ctl(), tmp_high.lc_iter_ctl(), result_low + (right_midpoint - right_low));
+			gda::init_internal<T_COEF, static_cast<T_COEF>(0)>(result_low, result_high);
+			gda::accu_add_karatsuba_internal<T_COEF, T_COEF>(tmp_low.cc_iter_ctl(), tmp_low.lc_iter_ctl(), result_low);
+			gda::accu_add_karatsuba_internal<T_COEF, T_COEF>(tmp_high.cc_iter_ctl(), tmp_high.lc_iter_ctl(), result_low + (right_midpoint - right_low));
 
-			return uvp<OUT_T_COEF, T_DEG, OUT_AUTO_TRIM>(result_low, result_high);
+			return uvp<T_COEF, T_DEG, OUT_AUTO_TRIM>(result_low, result_high);
 		}
 
 		if (_EQ0_BY_PTR(right_midpoint, right_high))
 		{
-			uvp<OUT_T_COEF, T_DEG, true> tmp_low = karatsuba_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, true>(left_low, left_midpoint, right_low, right_high);
-			uvp<OUT_T_COEF, T_DEG, true> tmp_high = karatsuba_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, true>(left_midpoint, left_high, right_low, right_high);
+			uvp<T_COEF, T_DEG, true> tmp_low = karatsuba_internal<T_COEF, T_DEG, true>(left_low, left_midpoint, right_low, right_high);
+			uvp<T_COEF, T_DEG, true> tmp_high = karatsuba_internal<T_COEF, T_DEG, true>(left_midpoint, left_high, right_low, right_high);
 
-			OUT_T_COEF* result_low = new OUT_T_COEF[tmp_high.deg() + (left_midpoint - left_low) + 1],
+			T_COEF* result_low = new T_COEF[tmp_high.deg() + (left_midpoint - left_low) + 1],
 				* result_high = result_low + tmp_high.deg() + (left_midpoint - left_low) + 1;
-			init_internal<OUT_T_COEF, static_cast<OUT_T_COEF>(0)>(result_low, result_high);
-			accumulate_add_karatsuba_internal<OUT_T_COEF>(tmp_low.cc_iter_ctl(), tmp_low.lc_iter_ctl(), result_low);
-			accumulate_add_karatsuba_internal<OUT_T_COEF>(tmp_high.cc_iter_ctl(), tmp_high.lc_iter_ctl(), result_low + (left_midpoint - left_low));
+			gda::init_internal<T_COEF, static_cast<T_COEF>(0)>(result_low, result_high);
+			gda::accu_add_karatsuba_internal<T_COEF, T_COEF>(tmp_low.cc_iter_ctl(), tmp_low.lc_iter_ctl(), result_low);
+			gda::accu_add_karatsuba_internal<T_COEF, T_COEF>(tmp_high.cc_iter_ctl(), tmp_high.lc_iter_ctl(), result_low + (left_midpoint - left_low));
 
-			return uvp<OUT_T_COEF, T_DEG, OUT_AUTO_TRIM>(result_low, result_high);
+			return uvp<T_COEF, T_DEG, OUT_AUTO_TRIM>(result_low, result_high);
 		}
 
 		//if (we can actually apply Karatsuba's trick)
 		{
-			uvp<L_T_COEF, T_DEG, true> left_hl = add_internal<L_T_COEF, L_T_COEF, L_T_COEF, T_DEG, true>(left_low, left_midpoint, left_midpoint, left_high);
-			uvp<R_T_COEF, T_DEG, true> right_hl = add_internal<R_T_COEF, R_T_COEF, R_T_COEF, T_DEG, true>(right_low, right_midpoint, right_midpoint, right_high);
+			uvp<T_COEF, T_DEG, true> left_hl = gda::add_internal<T_COEF, T_COEF, T_DEG, true>(left_low, left_midpoint, left_midpoint, left_high);
+			uvp<T_COEF, T_DEG, true> right_hl = gda::add_internal<T_COEF, T_COEF, T_DEG, true>(right_low, right_midpoint, right_midpoint, right_high);
 
-			uvp<OUT_T_COEF, T_DEG, true> lr_high = karatsuba_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, true>(left_midpoint, left_high, right_midpoint, right_high),
-				lr_hl = karatsuba_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, true>(left_hl.cc_iter_ctl(), left_hl.lc_iter_ctl(), right_hl.cc_iter_ctl(), right_hl.lc_iter_ctl()),
-				lr_low = karatsuba_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, true>(left_low, left_midpoint, right_low, right_midpoint);
+			uvp<T_COEF, T_DEG, true> lr_high = karatsuba_internal<T_COEF, T_DEG, true>(left_midpoint, left_high, right_midpoint, right_high),
+				lr_hl = karatsuba_internal<T_COEF, T_DEG, true>(left_hl.cc_iter_ctl(), left_hl.lc_iter_ctl(), right_hl.cc_iter_ctl(), right_hl.lc_iter_ctl()),
+				lr_low = karatsuba_internal<T_COEF, T_DEG, true>(left_low, left_midpoint, right_low, right_midpoint);
 
 			T_DEG result_len = std::max((right_midpoint - right_low) + (left_midpoint - left_low), (right_high - right_midpoint) + (left_high - left_low)) + (left_midpoint - left_low) - 1;
-			OUT_T_COEF* result_low = new OUT_T_COEF[result_len],
+			T_COEF* result_low = new T_COEF[result_len],
 				* result_high = result_low + result_len;
 
 			/*
@@ -1317,29 +1336,33 @@ namespace gda
 			std::cout << "op  5     : " << result_low + (left_midpoint - left_low) + (left_midpoint - left_low) << " - " << result_low + (left_midpoint - left_low) + (left_midpoint - left_low) + (lr_high.lc_iter_ctl() - lr_high.cc_iter_ctl()) << std::endl;
 			*/
 
-			init_internal<OUT_T_COEF, static_cast<OUT_T_COEF>(0)>(result_low, result_high);
-			accumulate_add_karatsuba_internal<OUT_T_COEF>(lr_low.cc_iter_ctl(), lr_low.lc_iter_ctl(), result_low);
+			gda::init_internal<T_COEF, static_cast<T_COEF>(0)>(result_low, result_high);
+			gda::accu_add_karatsuba_internal<T_COEF, T_COEF>(lr_low.cc_iter_ctl(), lr_low.lc_iter_ctl(), result_low);
+			gda::accu_add_karatsuba_internal<T_COEF, T_COEF>(lr_hl.cc_iter_ctl(), lr_hl.lc_iter_ctl(), result_low + (left_midpoint - left_low));
+			gda::accu_add_karatsuba_internal<T_COEF, T_COEF>(lr_high.cc_iter_ctl(), lr_high.lc_iter_ctl(), result_low + (left_midpoint - left_low) + (left_midpoint - left_low));
+			gda::accu_sub_karatsuba_internal<T_COEF, T_COEF>(lr_high.cc_iter_ctl(), lr_high.lc_iter_ctl(), result_low + (left_midpoint - left_low));
+			gda::accu_sub_karatsuba_internal<T_COEF, T_COEF>(lr_low.cc_iter_ctl(), lr_low.lc_iter_ctl(), result_low + (left_midpoint - left_low));
 
-			accumulate_add_karatsuba_internal<OUT_T_COEF>(lr_hl.cc_iter_ctl(), lr_hl.lc_iter_ctl(), result_low + (left_midpoint - left_low));
-			accumulate_sub_karatsuba_internal<OUT_T_COEF>(lr_high.cc_iter_ctl(), lr_high.lc_iter_ctl(), result_low + (left_midpoint - left_low));
-			accumulate_sub_karatsuba_internal<OUT_T_COEF>(lr_low.cc_iter_ctl(), lr_low.lc_iter_ctl(), result_low + (left_midpoint - left_low));
-
-			accumulate_add_karatsuba_internal<OUT_T_COEF>(lr_high.cc_iter_ctl(), lr_high.lc_iter_ctl(), result_low + (left_midpoint - left_low) + (left_midpoint - left_low));
-
-			return uvp<OUT_T_COEF, T_DEG, OUT_AUTO_TRIM>(result_low, result_high);
+			return uvp<T_COEF, T_DEG, OUT_AUTO_TRIM>(result_low, result_high);
 		}
 	}
 
-	template<typename L_T_COEF, typename R_T_COEF, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::mul_type, typename T_DEG, bool L_AUTO_TRIM, bool R_AUTO_TRIM>
-	uvp<OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM> karatsuba(const uvp<L_T_COEF, T_DEG, L_AUTO_TRIM>& left, const uvp<R_T_COEF, T_DEG, R_AUTO_TRIM>& right)
-	{
-		return karatsuba_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), right.cc_iter_ctl(), right.lc_iter_ctl());
-	}
-
-	template<typename L_T_COEF, typename R_T_COEF, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::mul_type, typename T_DEG, bool L_AUTO_TRIM, bool R_AUTO_TRIM>
+	template<typename L_T_COEF, typename R_T_COEF, typename T_DEG, bool L_AUTO_TRIM, bool R_AUTO_TRIM, typename LMR_T_COEF = CL_2<L_T_COEF, R_T_COEF>::mul_type, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::add_type>
 	uvp<OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM> operator *(const uvp<L_T_COEF, T_DEG, L_AUTO_TRIM>& left, const uvp<R_T_COEF, T_DEG, R_AUTO_TRIM>& right)
 	{
-		return karatsuba_internal<L_T_COEF, R_T_COEF, OUT_T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), right.cc_iter_ctl(), right.lc_iter_ctl());
+		return schoolbook_mul<L_T_COEF, R_T_COEF, T_DEG, L_AUTO_TRIM, R_AUTO_TRIM, LMR_T_COEF, OUT_T_COEF>(left, right);
+	}
+
+	template<typename T_COEF, typename T_DEG, bool L_AUTO_TRIM, bool R_AUTO_TRIM>
+	uvp<T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM> karatsuba(const uvp<T_COEF, T_DEG, L_AUTO_TRIM>& left, const uvp<T_COEF, T_DEG, R_AUTO_TRIM>& right)
+	{
+		return karatsuba_internal<T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), right.cc_iter_ctl(), right.lc_iter_ctl());
+	}
+
+	template<typename T_COEF, typename T_DEG, bool L_AUTO_TRIM, bool R_AUTO_TRIM>
+	uvp<T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM> operator *(const uvp<T_COEF, T_DEG, L_AUTO_TRIM>& left, const uvp<T_COEF, T_DEG, R_AUTO_TRIM>& right)
+	{
+		return karatsuba_internal<T_COEF, T_DEG, L_AUTO_TRIM || R_AUTO_TRIM>(left.cc_iter_ctl(), left.lc_iter_ctl(), right.cc_iter_ctl(), right.lc_iter_ctl());
 	}
 
 	template<typename L_T_COEF, typename R_T_COEF, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::mul_type, typename T_DEG, bool AUTO_TRIM>
@@ -1357,7 +1380,7 @@ namespace gda
 			* left_high = left.lc_iter_ctl(),
 			* left_iter = left_low;
 
-		if (left_low < left_high)
+		if (_NEQ0_BY_PTR(left_low, left_high))
 		{
 			OUT_T_COEF* result_low = new OUT_T_COEF[left_high - left_low],
 				* result_high = result_low + (left_high - left_low),
@@ -1391,7 +1414,7 @@ namespace gda
 			* right_high = right.lc_iter_ctl(),
 			* right_iter = right_low;
 
-		if (right_low < right_high)
+		if (_NEQ0_BY_PTR(right_low, right_high))
 		{
 			OUT_T_COEF* result_low = new OUT_T_COEF[right_high - right_low],
 				* result_high = result_low + (right_high - right_low),
@@ -1412,15 +1435,178 @@ namespace gda
 
 #pragma endregion
 
+#pragma region DIV
+
+	/*
+		Target is presumed to be at least as long as source; Source is presumed to be nonempty
+	*/
+	template<typename TAR_COEF, typename MUL_COEF, typename SRC_COEF>
+	static void mul_dest_sub_internal(TAR_COEF* target_high, const MUL_COEF* source_lmul, const SRC_COEF* source_low, const SRC_COEF* source_high)
+	{
+		TAR_COEF* target_iter = target_high;
+		const SRC_COEF* source_iter = source_high;
+
+		for (--source_iter; source_iter != source_low; --target_iter, --source_iter)
+			*target_iter -= *source_lmul * *source_iter;
+		*target_iter -= *source_lmul * *source_iter;
+	}
+
+	template<typename DIVISOR_T_COEF, typename DIV_T_COEF, typename MOD_T_COEF>
+	static void div_mod_body_internal(DIVISOR_T_COEF* divisor_low, DIVISOR_T_COEF* divisor_high, DIV_T_COEF* res_div_low, DIV_T_COEF* res_div_high, MOD_T_COEF* res_mod_low, MOD_T_COEF* res_mod_high)
+	{
+		DIVISOR_T_COEF* divisor_lc = divisor_high - 1;
+		DIV_T_COEF* res_div_iter = res_div_high;
+		MOD_T_COEF* res_mod_iter = res_mod_high;
+
+		for (--res_div_iter, --res_mod_iter; res_div_iter >= res_div_low; --res_div_iter, --res_mod_iter)
+		{
+			*res_div_iter = *res_mod_iter / *divisor_lc;
+			gda::mul_dest_sub_internal<MOD_T_COEF, DIV_T_COEF, DIVISOR_T_COEF>(res_mod_iter, res_div_iter, divisor_low, divisor_high);
+		}
+	}
+
+	template<typename L_T_COEF, typename R_T_COEF, typename T_DEG, bool L_AUTO_TRIM, bool R_AUTO_TRIM, bool DIV_AUTO_TRIM, bool MOD_AUTO_TRIM, typename DIV_T_COEF = CL_2<L_T_COEF, R_T_COEF>::div_type, typename MOD_T_COEF = CL_2<L_T_COEF, R_T_COEF>::mod_type>
+	bool div_mod(const uvp<L_T_COEF, T_DEG, L_AUTO_TRIM>& left, const uvp<R_T_COEF, T_DEG, R_AUTO_TRIM>& right, uvp<DIV_T_COEF, T_DEG, DIV_AUTO_TRIM>* div, uvp<MOD_T_COEF, T_DEG, MOD_AUTO_TRIM>* mod)
+	{
+		L_T_COEF* left_low = left.cc_iter_ctl(),
+			* left_high = left.lc_iter_ctl();
+		R_T_COEF* right_low = right.cc_iter_ctl(),
+			* right_high = right.lc_iter_ctl();
+
+		gda::trim_internal<R_T_COEF, !R_AUTO_TRIM, false>(&right_low, &right_high);
+
+		if (_EQ0_BY_PTR(right_low, right_high))
+			return false;
+
+		if constexpr (!L_AUTO_TRIM)
+		{
+			DIV_T_COEF* div_low,
+				* div_act_high,
+				* div_high;
+			MOD_T_COEF* mod_low,
+				* mod_high;
+
+			L_T_COEF* left_act_high = gda::rewind_trailing_zeroes_internal<L_T_COEF>(left_low, left_high);
+			if constexpr (DIV_AUTO_TRIM)
+			{
+				if (left_act_high - left_low < right_high - right_low)
+				{
+					*div = uvp<DIV_T_COEF, T_DEG, DIV_AUTO_TRIM>();
+					*mod = left;
+					return true;
+				}
+				div_low = new DIV_T_COEF[(left_act_high - left_low) - (right_high - right_low) + 1];
+				div_high = div_low + (left_act_high - left_low) - (right_high - right_low) + 1;
+				div_act_high = div_high;
+			}
+			else
+			{
+				if (left_high - left_low < right_high - right_low)
+				{
+					*div = uvp<DIV_T_COEF, T_DEG, DIV_AUTO_TRIM>();
+					*mod = left;
+					return true;
+				}
+				div_low = new DIV_T_COEF[(left_high - left_low) - (right_high - right_low) + 1];
+				div_high = div_low + (left_high - left_low) - (right_high - right_low) + 1;
+				div_act_high = div_high - (left_high - left_act_high);
+				gda::init_internal<DIV_T_COEF, static_cast<DIV_T_COEF>(0)>(div_act_high, div_high);
+			}
+
+			if constexpr (MOD_AUTO_TRIM)
+			{
+				if (_EQ0_BY_PTR(left_low, left_act_high))
+				{
+					gda::init_internal<DIV_T_COEF, static_cast<DIV_T_COEF>(0)>(div_low, div_act_high);
+					*div = uvp<DIV_T_COEF, T_DEG, DIV_AUTO_TRIM>(div_low, div_high);
+					*mod = left;
+					return true;
+				}
+				mod_low = new MOD_T_COEF[left_act_high - left_low];
+				mod_high = mod_low + (left_act_high - left_low);
+				gda::copy_internal<L_T_COEF, MOD_T_COEF>(left_low, left_act_high, mod_low);
+			}
+			else
+			{
+				if (_EQ0_BY_PTR(left_low, left_act_high))
+				{
+					gda::init_internal<DIV_T_COEF, static_cast<DIV_T_COEF>(0)>(div_low, div_act_high);
+					*div = uvp<DIV_T_COEF, T_DEG, DIV_AUTO_TRIM>(div_low, div_high);
+					*mod = left;
+					return true;
+				}
+				mod_low = new MOD_T_COEF[left_high - left_low];
+				mod_high = mod_low + (left_high - left_low);
+				gda::copy_internal<L_T_COEF, MOD_T_COEF>(left_low, left_high, mod_low);
+			}
+
+			gda::div_mod_body_internal<R_T_COEF, DIV_T_COEF, MOD_T_COEF>(right_low, right_high, div_low, div_act_high, mod_low, mod_high);
+
+			*div = uvp<DIV_T_COEF, T_DEG, DIV_AUTO_TRIM>(div_low, div_high);
+			*mod = uvp<MOD_T_COEF, T_DEG, MOD_AUTO_TRIM>(mod_low, mod_high);
+			return true;
+		}
+		else
+		{
+			if (left_high - left_low < right_high - right_low)
+			{
+				*div = uvp<DIV_T_COEF, T_DEG, DIV_AUTO_TRIM>();
+				*mod = left;
+				return true;
+			}
+
+			DIV_T_COEF* div_low = new DIV_T_COEF[(left_high - left_low) - (right_high - right_low) + 1],
+				* div_high = div_low + (left_high - left_low) - (right_high - right_low) + 1;
+			MOD_T_COEF* mod_low = new MOD_T_COEF[left_high - left_low],
+				* mod_high = mod_low + (left_high - left_low);
+
+			gda::copy_internal<L_T_COEF, MOD_T_COEF>(left_low, left_high, mod_low);
+			gda::div_mod_body_internal<R_T_COEF, DIV_T_COEF, MOD_T_COEF>(right_low, right_high, div_low, div_high, mod_low, mod_high);
+
+			*div = uvp<DIV_T_COEF, T_DEG, DIV_AUTO_TRIM>(div_low, div_high);
+			*mod = uvp<MOD_T_COEF, T_DEG, MOD_AUTO_TRIM>(mod_low, mod_high);
+			return true;
+		}
+	}
+
+	template<typename L_T_COEF, typename R_T_COEF, typename T_DEG, bool AUTO_TRIM, typename OUT_T_COEF = CL_2<L_T_COEF, R_T_COEF>::div_type>
+	uvp<OUT_T_COEF, T_DEG, AUTO_TRIM> operator /(const uvp<L_T_COEF, T_DEG, AUTO_TRIM>& left, const R_T_COEF& right)
+	{
+		L_T_COEF* left_low = left.cc_iter_ctl(),
+			* left_high = left.lc_iter_ctl(),
+			* left_iter = left_low;
+
+		if (left_low < left_high)
+		{
+			OUT_T_COEF* result_low = new OUT_T_COEF[left_high - left_low],
+				* result_high = result_low + (left_high - left_low),
+				* result_iter = result_low;
+
+			for (; result_iter != result_high; ++left_iter, ++result_iter)
+			{
+				*result_iter = *left_iter / right;
+			}
+
+			return uvp<OUT_T_COEF, T_DEG, AUTO_TRIM>(result_low, result_high);
+		}
+		else
+		{
+			return uvp<OUT_T_COEF, T_DEG, AUTO_TRIM>();
+		}
+	}
+
+#pragma endregion
+
+
 #pragma region CMP
 	
 	//uvp<L> left == uvp<R> right \iff \forall i left[i] == right[i]; L == R is assumed to by symmetric; L != R doesn't matter
 
 	/*
-		left is presumed to be at most as long as right
+		left_high - left_low <= right_high - right_low
 	*/
 	template<typename L_T_COEF, typename R_T_COEF>
-	static bool eq_body(L_T_COEF* left_low, L_T_COEF* left_high, R_T_COEF* right_low, R_T_COEF* right_high)
+	static bool eq_body_internal(L_T_COEF* left_low, L_T_COEF* left_high, R_T_COEF* right_low, R_T_COEF* right_high)
 	{
 		L_T_COEF* left_iter = left_low;
 		R_T_COEF* right_iter = right_low;
@@ -1480,7 +1666,7 @@ namespace gda
 				}
 				else
 				{
-					return eq_body<L_T_COEF, R_T_COEF>(l_low, l_high, r_low, r_high);
+					return gda::eq_body_internal<L_T_COEF, R_T_COEF>(l_low, l_high, r_low, r_high);
 				}
 			}
 		}
@@ -1494,18 +1680,18 @@ namespace gda
 				}
 				else
 				{
-					return eq_body<R_T_COEF, L_T_COEF>(r_low, r_high, l_low, l_high);
+					return gda::eq_body_internal<R_T_COEF, L_T_COEF>(r_low, r_high, l_low, l_high);
 				}
 			}
 			else
 			{
 				if (l_high - l_low < r_high - r_low)
 				{
-					return eq_body<L_T_COEF, R_T_COEF>(l_low, l_high, r_low, r_high);
+					return gda::eq_body_internal<L_T_COEF, R_T_COEF>(l_low, l_high, r_low, r_high);
 				}
 				else
 				{
-					return eq_body<R_T_COEF, L_T_COEF>(r_low, r_high, l_low, l_high);
+					return gda::eq_body_internal<R_T_COEF, L_T_COEF>(r_low, r_high, l_low, l_high);
 				}
 			}
 		}
